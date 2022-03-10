@@ -1,12 +1,11 @@
-import { atom } from "recoil";
+import { atom } from 'recoil';
 
 export const currentTrackIdState = atom({
-    key:  "currentTrackIdState", // unique ID
-    default : null,
-
+	key: 'currentTrackIdState',
+	default: null,
 });
 
 export const isPlayingState = atom({
-    key: "isPlayingState",
-    default: false
+	key: 'isPlayingState',
+	default: false,
 });

@@ -1,5 +1,5 @@
 import { ChevronDownIcon } from '@heroicons/react/outline'
-import { useSession } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { shuffle } from 'lodash'
 import { useRecoilState, useRecoilValue } from 'recoil'
@@ -18,60 +18,48 @@ const colors = [
 ]
 
 function Center() {
-  const { data: session } = useSession()
-  const spotifyApi = useSpotify()
-  const [color, setColor] = useState(null)
-  const playlistId = useRecoilValue(playlistIdState)
-  const [playlist, setPlaylist] = useRecoilState(playlistState)
+	const { data: session } = useSession();
+	const spotifyApi = useSpotify();
+	const [color, setColor] = useState(null);
+	const playlistId = useRecoilValue(playlistIdState);
+	const [playlist, setPlaylist] = useRecoilState(playlistState);
+	
+	useEffect(() => {
+		setColor(shuffle(colors).pop());
+	}, [playlistId]);
+	
+	useEffect(() => {
+		spotifyApi.getPlaylist(playlistId).then(data => {
+			setPlaylist(data.body);
+		}).catch(error => console.log('Something went wrong', error));
+	}, [spotifyApi, playlistId]);
+	
+	
+	return (
+		<div className="flex-grow h-screen overflow-y-scroll scrollbar-hide">
+			<header className="absolute top-5 right-8">
+				<div
+					className="flex items-center bg-black text-white space-x-3 opacity-90 hover:opacity-80 cursor-pointer rounded-full p-1 pr-2"
+					onClick={() => signOut()}>
+					<img className="rounded-full w-10 h-10" src={session?.user.image} alt="User Profile" />
+					<h2>{session?.user.name}</h2>
+					<ChevronDownIcon className="h-5 w-5" />
+				</div>
+			</header>
+			
+			<section className={`flex items-end space-x-7 bg-gradient-to-b to-black ${color} h-80 text-white p-8 w-full`}>
+				<img className="h-44 w-44 shadow-2xl" src={playlist?.images?.[0]?.url} alt="" />
+				<div>
+					<p>PLAYLIST</p>
+					<h1 className="text-2xl md:text-3xl xl:text-5xl font-bold">{playlist?.name}</h1>
+				</div>
+			</section>
+			
+			<div>
+				<Songs />
+			</div>
+		</div>
+	);
+};
 
-  useEffect(() => {
-    setColor(shuffle(colors).pop())
-  }, [playlistId])
-
-  useEffect(() => {
-    spotifyApi
-      .getPlaylist(playlistId)
-      .then((data) => {
-        setPlaylist(data.body)
-      })
-      .catch((err) => console.log('something went wrong!', err))
-  }, [spotifyApi, playlistId])
-  console.log(playlist)
-
-  return (
-    <div className=" flex-grow h-screen overflow-y-scroll scrollbar-hide">
-      <header className=" absolute top-5 right-8">
-        <div className=" item-center flex cursor-pointer space-x-3 rounded-full bg-black p-1 pr-4 text-white opacity-90 hover:opacity-80">
-          <img
-            className=" h-9 w-9  rounded-full"
-            src={session?.user.image}
-            alt=""
-          />
-          <h2 className=" mt-1.5 font-medium">{session?.user.name}</h2>
-          <ChevronDownIcon className=" mt-[9px] h-5 w-5" />
-        </div>
-      </header>
-      <section
-        className={` flex items-end space-x-7 bg-gradient-to-b to-black ${color} h-80 p-8 text-white`}
-      >
-        <img
-          className="h-44 w-44 shadow-2xl"
-          src={playlist?.images?.[0]?.url}
-          alt=""
-        />
-        <div>
-          <p>PLAYLIST</p>
-          <h1 className=" text-2xl font-bold md:text-2xl xl:text-3xl">
-            {playlist?.name}
-          </h1>
-        </div>
-      </section>
-
-      <div>
-        <Songs />
-      </div>
-    </div>
-  )
-}
-
-export default Center
+export default Center;
